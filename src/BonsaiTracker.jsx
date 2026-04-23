@@ -545,9 +545,16 @@ export default function BonsaiTracker() {
     return tasks.sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
   }, [trees]);
 
-  const overdueTasks = upcomingTasks.filter(t => t.days !== null && t.days <= 0);
-  const todayTasks = upcomingTasks.filter(t => t.days === 0);
-  const soonTasks = upcomingTasks.filter(t => t.days !== null && t.days > 0 && t.days <= 7);
+  const careTasks = upcomingTasks.filter(t => t.type !== "water");
+  const waterTasks = upcomingTasks.filter(t => t.type === "water");
+
+  const overdueTasks = careTasks.filter(t => t.days !== null && t.days <= 0);
+  const todayTasks = careTasks.filter(t => t.days === 0);
+  const soonTasks = careTasks.filter(t => t.days !== null && t.days > 0 && t.days <= 7);
+
+  const overdueWater = waterTasks.filter(t => t.days !== null && t.days <= 0);
+  const todayWater = waterTasks.filter(t => t.days === 0);
+  const soonWater = waterTasks.filter(t => t.days !== null && t.days > 0 && t.days <= 7);
 
   const needsAttentionTrees = trees.filter(t => t.health === "Needs Attention" || t.health === "Critical");
 
@@ -644,6 +651,7 @@ export default function BonsaiTracker() {
         <TabButton active={tab === "dashboard"} onClick={() => { setTab("dashboard"); setSelectedTree(null); }} icon={Sun}>Dashboard</TabButton>
         <TabButton active={tab === "collection"} onClick={() => { setTab("collection"); setSelectedTree(null); }} icon={TreePine} count={trees.length}>Collection</TabButton>
         <TabButton active={tab === "schedule"} onClick={() => { setTab("schedule"); setSelectedTree(null); }} icon={Calendar} count={overdueTasks.length || undefined}>Schedule</TabButton>
+        <TabButton active={tab === "watering"} onClick={() => { setTab("watering"); setSelectedTree(null); }} icon={Droplets} count={overdueWater.length || undefined}>Watering</TabButton>
         <TabButton active={tab === "detail"} onClick={() => {}} icon={TrendingUp}>{currentTree ? currentTree.name : "Detail"}</TabButton>
       </div>
 
@@ -688,7 +696,7 @@ export default function BonsaiTracker() {
           {/* Upcoming tasks */}
           <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: 16 }}>
             <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 600 }}>Upcoming Care Tasks</h3>
-            {upcomingTasks.slice(0, 10).map((task, i) => {
+            {careTasks.slice(0, 10).map((task, i) => {
               const Icon = task.careType ? IconMap[task.careType.icon] : Droplets;
               return (
                 <div key={i} style={{
@@ -773,7 +781,7 @@ export default function BonsaiTracker() {
             { title: "Overdue", tasks: overdueTasks, emptyMsg: "Nothing overdue", accent: "#ef4444" },
             { title: "Today", tasks: todayTasks, emptyMsg: "Nothing due today", accent: "#f59e0b" },
             { title: "This Week", tasks: soonTasks, emptyMsg: "Nothing coming up this week", accent: "#3b82f6" },
-            { title: "Later", tasks: upcomingTasks.filter(t => t.days > 7), emptyMsg: "", accent: "#6b7280" },
+            { title: "Later", tasks: careTasks.filter(t => t.days > 7), emptyMsg: "", accent: "#6b7280" },
           ].map((section, si) => (
             <div key={si} style={{ marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}
@@ -815,6 +823,45 @@ export default function BonsaiTracker() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ════════ WATERING ════════ */}
+      {tab === "watering" && (
+        <div>
+          <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: 16 }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 600 }}>Watering Schedule</h3>
+            <p style={{ margin: "0 0 14px", fontSize: 12, color: "#9ca3af" }}>Trees in soil/ground may not need watering as frequently — adjust intervals per tree as needed.</p>
+            <div style={{ display: "grid", gap: 6 }}>
+              {waterTasks.map((task, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "8px 12px", background: "#f9fafb", borderRadius: 8
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Droplets size={16} color="#3b82f6" />
+                    <span style={{ fontSize: 13, fontWeight: 500, cursor: "pointer", textDecoration: "underline" }}
+                      onClick={() => { setSelectedTree(trees.find(t => t.id === task.treeId)); setTab("detail"); }}>
+                      {task.treeName}
+                    </span>
+                    <span style={{ fontSize: 12, color: "#9ca3af" }}>every {task.intervalDays}d</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: "#9ca3af" }}>Last: {formatDate(task.lastDone)}</span>
+                    <DueIndicator days={task.days} />
+                    {doneFlash === `${task.treeId}-${task.type}` ? (
+                      <span style={{ fontSize: 12, color: "#16a34a", fontWeight: 600 }}>Done!</span>
+                    ) : (
+                      <button onClick={() => markDone(task.treeId, task.type)}
+                        style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", color: "#374151" }}>
+                        <Check size={12} /> Done
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
