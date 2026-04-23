@@ -552,6 +552,8 @@ export default function BonsaiTracker() {
   const needsAttentionTrees = trees.filter(t => t.health === "Needs Attention" || t.health === "Critical");
 
   // ── Handlers ──
+  const [doneFlash, setDoneFlash] = useState(null);
+
   function markDone(treeId, careType) {
     setTrees(prev => prev.map(t => {
       if (t.id !== treeId) return t;
@@ -562,6 +564,8 @@ export default function BonsaiTracker() {
         )
       };
     }));
+    setDoneFlash(`${treeId}-${careType}`);
+    setTimeout(() => setDoneFlash(null), 1500);
   }
 
   function addTree(tree) {
