@@ -713,10 +713,14 @@ export default function BonsaiTracker() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <DueIndicator days={task.days} />
-                    <button onClick={() => markDone(task.treeId, task.type)}
-                      style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", color: "#374151" }}>
-                      <Check size={12} /> Done
-                    </button>
+                    {doneFlash === `${task.treeId}-${task.type}` ? (
+                      <span style={{ fontSize: 12, color: "#16a34a", fontWeight: 600 }}>Done!</span>
+                    ) : (
+                      <button onClick={() => markDone(task.treeId, task.type)}
+                        style={{ border: "1px solid #d1d5db", background: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", color: "#374151" }}>
+                        <Check size={12} /> Done
+                      </button>
+                    )}
                   </div>
                 </div>
               );
